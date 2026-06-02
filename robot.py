@@ -1,5 +1,6 @@
 import threading
 import time
+shared_states = {}
 
 class RobotState:
     IDLE = "IDLE"
@@ -36,6 +37,7 @@ class Robot(threading.Thread):
         self.task_queue = task_queue
         self.log = log_func
         self.state = RobotState.IDLE
+        shared_states[self.robot_id] = self.state
         self.battery = 100
         self.position = "Base"
         self.tasks_done = 0
@@ -55,6 +57,7 @@ class Robot(threading.Thread):
         self.log(f"[{self.robot_id}] STARTED")
         while True:
             self.state = RobotState.IDLE
+            shared_states[self.robot_id] = self.state
             task = self.task_queue.get()
             if task is None:
                 break
@@ -62,6 +65,7 @@ class Robot(threading.Thread):
             self.log(f"[{self.robot_id}] Got {task}")
             self._execute_task(task)
         self.state = RobotState.TERMINATED
+        shared_states[self.robot_id] = self.state
         self.log(f"[{self.robot_id}] TERMINATED")
 
     def _execute_task(self, task):
@@ -84,9 +88,11 @@ class Robot(threading.Thread):
         lock = self.path_locks.get(path_name)
         if lock:
             self.state = RobotState.WAITING
+            shared_states[self.robot_id] = self.state
             self.log(f"[{self.robot_id}] Waiting for path {path_name}...")
             lock.acquire()
             self.state = RobotState.MOVING
+            shared_states[self.robot_id] = self.state
             self.log(f"[{self.robot_id}] Acquired {path_name}, moving to {destination}")
         time.sleep(0.8)
         self.position = destination
@@ -96,6 +102,7 @@ class Robot(threading.Thread):
 
     def _charge(self):
         self.state = RobotState.CHARGING
+        shared_states[self.robot_id] = self.state
         self.log(f"[{self.robot_id}] Charging...")
         time.sleep(1.0)
         self.battery = 100
