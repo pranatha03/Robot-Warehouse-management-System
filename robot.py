@@ -71,10 +71,10 @@ class Robot(threading.Thread):
     def _execute_task(self, task):
         self._move(task.source, task.path_to_source)
         self.log(f"[{self.robot_id}] Picked up {task.item} from {task.source}")
-        time.sleep(0.3)
+        time.sleep(5.0)
         self._move(task.destination, task.path_to_dest)
         self.log(f"[{self.robot_id}] Delivered {task.item} to {task.destination}")
-        time.sleep(0.3)
+        time.sleep(5.0)
         self.position = "Base"
         self.battery = max(0, self.battery - 15)
         self.tasks_done += 1
@@ -94,7 +94,7 @@ class Robot(threading.Thread):
             self.state = RobotState.MOVING
             shared_states[self.robot_id] = self.state
             self.log(f"[{self.robot_id}] Acquired {path_name}, moving to {destination}")
-        time.sleep(0.8)
+        time.sleep(5.0)
         self.position = destination
         if lock:
             lock.release()
@@ -104,6 +104,6 @@ class Robot(threading.Thread):
         self.state = RobotState.CHARGING
         shared_states[self.robot_id] = self.state
         self.log(f"[{self.robot_id}] Charging...")
-        time.sleep(1.0)
+        time.sleep(5.0)
         self.battery = 100
         self.log(f"[{self.robot_id}] Fully charged")
